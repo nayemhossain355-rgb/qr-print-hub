@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>প্রিন্টের ফাইল আপলোড</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 flex flex-col justify-between min-h-screen">
+
+    <div class="bg-indigo-600 text-white p-5 text-center shadow-md">
+        <h1 class="text-xl font-bold"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>ডকুমেন্ট আপলোড</h1>
+        <p class="text-indigo-200 text-xs mt-1">পিসিতে সরাসরি ফাইল পাঠাতে আপলোড করুন</p>
+    </div>
+
+    <div class="p-6 max-w-md mx-auto w-full">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+            
+            <input type="file" id="fileInput" class="hidden" accept=".pdf, image/*">
+            
+            <div id="dropZone" onclick="document.getElementById('fileInput').click()" 
+                 class="border-2 border-dashed border-indigo-300 hover:border-indigo-500 rounded-xl p-8 cursor-pointer bg-indigo-50/50 transition">
+                <i class="fa-solid fa-file-circle-plus text-5xl text-indigo-500 mb-3"></i>
+                <p class="font-bold text-slate-700">ফাইল নির্বাচন করতে চাপুন</p>
+                <p class="text-xs text-slate-400 mt-1">PDF, JPG, PNG ফাইল সমর্থিত</p>
+            </div>
+
+            <div id="fileInfo" class="mt-4 hidden p-3 bg-slate-50 border rounded-lg text-left text-sm text-slate-600 truncate"></div>
+
+            <button id="uploadBtn" onclick="uploadFile()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-md transition disabled:opacity-50" disabled>
+                কম্পিউটারে পাঠান
+            </button>
+
+            <div id="status" class="mt-4 text-sm font-semibold hidden"></div>
+        </div>
+    </div>
+
+    <div class="text-center text-xs text-slate-400 p-4">
+        স্মার্ট প্রিন্ট হাব &copy; ২০২৪
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const status = document.getElementById('status');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileInfo.innerText = `নির্বাচিত ফাইল: ${fileInput.files[0].name}`;
+                fileInfo.classList.remove('hidden');
+                uploadBtn.disabled = false;
+            }
+        });
+
+        function uploadFile() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadBtn.disabled = true;
+            status.className = "mt-4 text-sm font-semibold text-blue-600";
+            status.innerText = "ফাইল পাঠানো হচ্ছে...";
+            status.classList.remove('hidden');
+
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                status.className = "mt-4 text-sm font-semibold text-green-600";
+                status.innerText = "সফলভাবে পাঠানো হয়েছে! পিসি চেক করুন।";
+                fileInput.value = '';
+                fileInfo.classList.add('hidden');
+            })
+            .catch(err => {
+                status.className = "mt-4 text-sm font-semibold text-red-600";
+                status.innerText = "পাঠাতে ব্যর্থ হয়েছে, পুনরায় চেষ্টা করুন।";
+                uploadBtn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
